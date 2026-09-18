@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>プリンスター救出 - 閉鎖研究施設からの脱出</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yusei+Magic&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FBEBC9;
+  --panel:#FFF7E6;
+  --orange:#F0A868;
+  --orange-deep:#D97F3F;
+  --pink:#F6AFA6;
+  --ink:#2B3A42;
+  --ink-soft:#3E4E58;
+  --amber:#E2703A;
+  --mist:#CFEAF0;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--ink);font-family:'Zen Maru Gothic',sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;}
+#c{display:block;width:100vw;height:100vh;touch-action:none;}
+#hud{position:fixed;top:0;left:0;right:0;padding:.7rem .8rem;padding-top:calc(.7rem + env(safe-area-inset-top));display:flex;flex-direction:column;gap:.45rem;pointer-events:none;z-index:5;}
+#hudTop{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;}
+#objective{background:rgba(43,58,66,.78);color:var(--cream);padding:.55rem 1rem;border-radius:999px;font-size:.82rem;line-height:1.35;max-width:70%;box-shadow:0 2px 0 rgba(0,0,0,.18);}
+#helpBtn{pointer-events:all;width:2.5rem;height:2.5rem;flex:0 0 auto;border-radius:50%;background:var(--panel);border:2px solid var(--orange);color:var(--orange-deep);font-size:1.1rem;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 var(--orange-deep);}
+#hudBottomRow{display:flex;justify-content:flex-end;align-items:center;gap:.5rem;}
+#timer{background:rgba(43,58,66,.6);color:var(--cream);padding:.3rem .65rem;border-radius:999px;font-size:.72rem;letter-spacing:.03em;}
+#inventory{display:flex;gap:.4rem;}
+.invItem{width:2.15rem;height:2.15rem;border-radius:50%;background:var(--panel);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:1.05rem;opacity:.28;transform:scale(.9);transition:opacity .35s,transform .35s;}
+.invItem.got{opacity:1;transform:scale(1.05);}
+#tapHint{position:fixed;left:50%;top:52%;transform:translate(-50%,-50%);color:rgba(251,235,201,.55);font-size:.78rem;letter-spacing:.05em;pointer-events:none;z-index:4;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+#nav{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:center;flex-wrap:wrap;gap:.55rem;padding:0 .8rem;padding-bottom:calc(1rem + env(safe-area-inset-bottom));z-index:5;}
+.navBtn{pointer-events:all;background:var(--orange);color:#fff;border:none;border-radius:999px;padding:.8rem 1.15rem;font-size:.85rem;font-weight:700;font-family:inherit;box-shadow:0 3px 0 var(--orange-deep);}
+.navBtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--orange-deep);}
+.navBtn.disabled{background:#8b95a0;color:#e7ebee;box-shadow:0 3px 0 #6d7680;}
+#toast{position:fixed;bottom:5.6rem;left:50%;transform:translateX(-50%) translateY(6px);background:var(--ink);color:var(--cream);padding:.7rem 1.15rem;border-radius:1rem;font-size:.82rem;max-width:82vw;text-align:center;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:7;box-shadow:0 4px 12px rgba(0,0,0,.25);}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.modal{position:fixed;inset:0;background:rgba(18,23,27,.75);display:flex;align-items:center;justify-content:center;z-index:20;padding:1.1rem;}
+.modal.hidden{display:none;}
+.card{background:var(--panel);border:3px solid var(--orange);border-radius:1.5rem;padding:1.6rem 1.4rem;max-width:25rem;width:100%;max-height:86vh;overflow-y:auto;color:var(--ink);box-shadow:0 10px 0 rgba(0,0,0,.15);}
+.card h1{font-family:'Yusei Magic',sans-serif;font-size:1.4rem;margin:0 0 .5rem;color:var(--orange-deep);line-height:1.4;}
+.card h2{font-family:'Yusei Magic',sans-serif;font-size:1.15rem;margin:0 0 .6rem;color:var(--orange-deep);}
+.card p{font-size:.9rem;line-height:1.7;margin:.5rem 0;}
+.card ul{padding-left:1.1rem;margin:.6rem 0;font-size:.86rem;line-height:1.75;}
+.card .credit{font-size:.72rem;color:var(--ink-soft);margin-top:1rem;text-align:right;}
+.bigBtn{width:100%;background:var(--orange);color:#fff;border:none;border-radius:1rem;padding:.95rem;font-size:1.02rem;font-weight:700;margin-top:1.1rem;box-shadow:0 4px 0 var(--orange-deep);font-family:inherit;}
+.bigBtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--orange-deep);}
+.ghostBtn{width:100%;background:transparent;color:var(--orange-deep);border:2px solid var(--orange);border-radius:1rem;padding:.8rem;font-size:.92rem;font-weight:700;margin-top:.7rem;font-family:inherit;}
+.starDeco{width:3.4rem;height:3.4rem;margin:0 auto .5rem;background:var(--cream);clip-path:polygon(50% 0%,63% 35%,100% 38%,72% 60%,82% 96%,50% 76%,18% 96%,28% 60%,0% 38%,37% 35%);border:3px solid var(--orange);}
+.codeDisplay{display:flex;justify-content:center;gap:.5rem;margin:1rem 0 .3rem;}
+.codeDisplay span{width:2.2rem;height:2.7rem;border:2px solid var(--orange);border-radius:.6rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:700;background:#fff;color:var(--ink);}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.8rem;}
+.keypad button{padding:.95rem 0;font-size:1.25rem;border-radius:.8rem;border:2px solid var(--orange);background:#fff;color:var(--ink);font-weight:700;font-family:inherit;}
+.keypad button:active{background:var(--cream);}
+.keypad button.wideAction{font-size:.95rem;color:var(--orange-deep);}
+.shake{animation:shakeAnim .35s;}
+@keyframes shakeAnim{0%,100%{transform:translateX(0);}20%{transform:translateX(-10px);}40%{transform:translateX(10px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}}
+#winModal .starDeco{width:4rem;height:4rem;}
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="c"></canvas>
+  <div id="hud">
+    <div id="hudTop">
+      <div id="objective"></div>
+      <div id="helpBtn">?</div>
+    </div>
+    <div id="hudBottomRow">
+      <div id="timer">00:00</div>
+      <div id="inventory">
+        <div class="invItem" id="invKey">🔑</div>
+        <div class="invItem" id="invStar">⭐</div>
+      </div>
+    </div>
+  </div>
+  <div id="tapHint">ドラッグで見回す・タップで調べる</div>
+  <div id="nav"></div>
+  <div id="toast"></div>
+</div>
+
+<div id="startModal" class="modal">
+  <div class="card">
+    <div class="starDeco"></div>
+    <h1>プリンスター救出<br>閉鎖研究施設からの脱出</h1>
+    <p>ある夜、いつも一緒にいるはずのプリンスターが、廃止された研究施設に閉じ込められてしまった。電力の落ちた施設に入り、仕掛けを解いてプリンスターを助け出し、脱出しよう。</p>
+    <ul>
+      <li>指でドラッグして周りを見回せる</li>
+      <li>気になるものはタップして調べる</li>
+      <li>下のボタンで別の部屋へ移動する</li>
+      <li>プリンスターを保護してから出口へ</li>
+    </ul>
+    <button class="bigBtn" id="startBtn">はじめる</button>
+    <div class="credit">制作:星と君ぷろじぇく</div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal hidden">
+  <div class="card">
+    <h2>あそびかた</h2>
+    <ul>
+      <li>指でドラッグして周りを見回せる</li>
+      <li>気になるものはタップして調べる</li>
+      <li>下のボタンで別の部屋へ移動する</li>
+      <li>電源を復旧させ、鍵を手に入れ、プリンスターを保護してから出口へ向かおう</li>
+    </ul>
+    <button class="bigBtn" id="helpCloseBtn">とじる</button>
+  </div>
+</div>
+
+<div id="infoModal" class="modal hidden">
+  <div class="card">
+    <h2 id="infoTitle"></h2>
+    <p id="infoBody"></p>
+    <button class="bigBtn" id="infoCloseBtn">とじる</button>
+  </div>
+</div>
+
+<div id="keypadModal" class="modal hidden">
+  <div class="card">
+    <h2>保管庫のロックを解除</h2>
+    <p>4桁のコードを入力してください。</p>
+    <div class="codeDisplay" id="codeDisplay"></div>
+    <div class="keypad" id="keypadGrid"></div>
+    <button class="ghostBtn" id="keypadCloseBtn">とじる</button>
+  </div>
+</div>
+
+<div id="winModal" class="modal hidden">
+  <div class="card">
+    <div class="starDeco"></div>
+    <h1>脱出成功!</h1>
+    <p>プリンスターを保護し、閉鎖された研究施設からの脱出に成功した。</p>
+    <p id="winTime" style="font-weight:700;color:var(--orange-deep);"></p>
+    <button class="bigBtn" id="restartBtn">もう一度あそぶ</button>
+    <div class="credit">制作:星と君ぷろじぇく</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+var canvas=document.getElementById('c');
+var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+
+var scene=new THREE.Scene();
+var camera=new THREE.PerspectiveCamera(62,window.innerWidth/window.innerHeight,0.1,100);
+camera.rotation.order='YXZ';
+
+scene.fog=new THREE.Fog(0x2b3a42,3,15);
+scene.background=new THREE.Color(0x2b3a42);
+
+window.addEventListener('resize',function(){
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  camera.aspect=window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+function makeCanvas(w,h){
+  var c=document.createElement('canvas');
+  c.width=w;c.height=h;
+  return c;
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function makeTextPlane(w,h,cw,ch,drawFn){
+  var c=makeCanvas(cw,ch);
+  var ctx=c.getContext('2d');
+  drawFn(ctx,cw,ch);
+  var tex=new THREE.CanvasTexture(c);
+  tex.needsUpdate=true;
+  var mat=new THREE.MeshBasicMaterial({map:tex,transparent:true});
+  var geo=new THREE.PlaneGeometry(w,h);
+  var mesh=new THREE.Mesh(geo,mat);
+  mesh.userData.canvas=c;
+  mesh.userData.ctx=ctx;
+  mesh.userData.texture=tex;
+  return mesh;
+}
+
+function createStarShape(outerR,innerR,points){
+  var shape=new THREE.Shape();
+  var step=Math.PI/points;
+  for(var i=0;i<points*2;i++){
+    var r=(i%2===0)?outerR:innerR;
+    var a=i*step-Math.PI/2;
+    var x=Math.cos(a)*r,y=Math.sin(a)*r;
+    if(i===0){shape.moveTo(x,y);}else{shape.lineTo(x,y);}
+  }
+  shape.closePath();
+  return shape;
+}
+
+function createPurinsuta(scale){
+  var group=new THREE.Group();
+  var rimShape=createStarShape(0.7,0.32,5);
+  var rimGeo=new THREE.ExtrudeGeometry(rimShape,{depth:0.16,bevelEnabled:true,bevelThickness:0.06,bevelSize:0.06,bevelSegments:5});
+  rimGeo.center();
+  var rimMat=new THREE.MeshStandardMaterial({color:0xE79A55,roughness:0.6,metalness:0.05});
+  var rim=new THREE.Mesh(rimGeo,rimMat);
+  rim.position.z=-0.05;
+  group.add(rim);
+
+  var bodyShape=createStarShape(0.6,0.26,5);
+  var bodyGeo=new THREE.ExtrudeGeometry(bodyShape,{depth:0.22,bevelEnabled:true,bevelThickness:0.09,bevelSize:0.09,bevelSegments:6});
+  bodyGeo.center();
+  var bodyMat=new THREE.MeshStandardMaterial({color:0xF7DDA0,roughness:0.5,metalness:0.02});
+  var body=new THREE.Mesh(bodyGeo,bodyMat);
+  group.add(body);
+
+  var eyeGeo=new THREE.SphereGeometry(0.055,14,14);
+  var eyeMat=new THREE.MeshStandardMaterial({color:0x2c2016,roughness:0.3});
+  var eyeL=new THREE.Mesh(eyeGeo,eyeMat);
+  eyeL.position.set(-0.16,0.07,0.2);
+  eyeL.scale.set(1,1.3,0.6);
+  var eyeR=eyeL.clone();
+  eyeR.position.x=0.16;
+  group.add(eyeL,eyeR);
+
+  var hlGeo=new THREE.SphereGeometry(0.02,10,10);
+  var hlMat=new THREE.MeshBasicMaterial({color:0xffffff});
+  var hlL=new THREE.Mesh(hlGeo,hlMat);
+  hlL.position.set(-0.13,0.11,0.24);
+  var hlR=hlL.clone();
+  hlR.position.x=0.19;
+  group.add(hlL,hlR);
+
+  var cheekGeo=new THREE.CircleGeometry(0.085,18);
+  var cheekMat=new THREE.MeshBasicMaterial({color:0xF6AFA6,transparent:true,opacity:0.85});
+  var cheekL=new THREE.Mesh(cheekGeo,cheekMat);
+  cheekL.position.set(-0.27,-0.04,0.2);
+  var cheekR=cheekL.clone();
+  cheekR.position.x=0.27;
+  group.add(cheekL,cheekR);
+
+  group.scale.setScalar(scale);
+  return group;
+}
+
+function buildShell(colors){
+  var group=new THREE.Group();
+  var floorMat=new THREE.MeshStandardMaterial({color:colors.floor,roughness:0.9});
+  var ceilMat=new THREE.MeshStandardMaterial({color:colors.ceil,roughness:0.9});
+  var wallMat=new THREE.MeshStandardMaterial({color:colors.wall,roughness:0.85});
+  var backMat=new THREE.MeshStandardMaterial({color:colors.back||colors.wall,roughness:0.85});
+
+  var floor=new THREE.Mesh(new THREE.PlaneGeometry(8,8),floorMat);
+  floor.rotation.x=-Math.PI/2;
+  group.add(floor);
+
+  var ceil=new THREE.Mesh(new THREE.PlaneGeometry(8,8),ceilMat);
+  ceil.rotation.x=Math.PI/2;
+  ceil.position.y=5;
+  group.add(ceil);
+
+  var back=new THREE.Mesh(new THREE.PlaneGeometry(8,5),backMat);
+  back.position.set(0,2.5,-4);
+  group.add(back);
+
+  var left=new THREE.Mesh(new THREE.PlaneGeometry(8,5),wallMat);
+  left.rotation.y=Math.PI/2;
+  left.position.set(-4,2.5,0);
+  group.add(left);
+
+  var right=new THREE.Mesh(new THREE.PlaneGeometry(8,5),wallMat);
+  right.rotation.y=-Math.PI/2;
+  right.position.set(4,2.5,0);
+  group.add(right);
+
+  return group;
+}
+
+var state={power:false,keycard:false,purinsuta:false,escaped:false};
+var switchSeq=[];
+var correctSeq=[3,1,2];
+var cageCode='4172';
+var codeEntry='';
+var interactables=[];
+var currentNode='entrance';
+var yaw=0,pitch=0;
+var dragging=false,moved=false,lastX=0,lastY=0,downTime=0;
+var purinsutaMesh=null;
+var purinsutaBaseY=2.1;
+var timerInterval=null;
+var startTimeMs=0;
+var finalElapsed='';
+
+function tween(duration,onUpdate,onDone){
+  var start=performance.now();
+  function step(now){
+    var t=Math.min(1,(now-start)/duration);
+    var e=t<0.5?2*t*t:-1+(4-2*t)*t;
+    onUpdate(e,t);
+    if(t<1){requestAnimationFrame(step);}else if(onDone){onDone();}
+  }
+  requestAnimationFrame(step);
+}
+
+var toastTimeout=null;
+function toast(msg){
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout=setTimeout(function(){el.classList.remove('show');},2600);
+}
+
+function showInfo(title,body){
+  document.getElementById('infoTitle').textContent=title;
+  document.getElementById('infoBody').textContent=body;
+  document.getElementById('infoModal').classList.remove('hidden');
+}
+
+var ambientLight=new THREE.AmbientLight(0xffffff,0.32);
+scene.add(ambientLight);
+
+var doorLight=new THREE.PointLight(0xff4d33,1.3,7);
+doorLight.position.set(0,3,-3.3);
+
+var panelLight=new THREE.PointLight(0xffb066,0.9,7);
+panelLight.position.set(0,3,-3);
+
+var cageLight=new THREE.PointLight(0xbfe8ff,1.4,6);
+cageLight.position.set(0,2.6,-3);
+
+var roomEntrance=buildShell({floor:0x333d43,ceil:0x2c343a,wall:0x46545c,back:0x3d4a52});
+var roomControl=buildShell({floor:0x2f3f42,ceil:0x28353a,wall:0x3c535c,back:0x33474f});
+var roomStorage=buildShell({floor:0x2b333c,ceil:0x242b32,wall:0x33424c,back:0x2c3a44});
+
+roomEntrance.add(doorLight);
+roomControl.add(panelLight);
+roomStorage.add(cageLight);
+
+scene.add(roomEntrance,roomControl,roomStorage);
+
+var signMesh=makeTextPlane(1.6,1.0,512,320,function(ctx,w,h){
+  ctx.fillStyle='#20272c';
+  roundRect(ctx,0,0,w,h,26);
+  ctx.fill();
+  ctx.strokeStyle='#F0A868';
+  ctx.lineWidth=8;
+  roundRect(ctx,10,10,w-20,h-20,20);
+  ctx.stroke();
+  ctx.fillStyle='#FBEBC9';
+  ctx.font='bold 54px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('SECTION A-7',w/2,h/2-18);
+  ctx.font='28px sans-serif';
+  ctx.fillStyle='#E2703A';
+  ctx.fillText('非常事態:電源系統ダウン',w/2,h/2+38);
+});
+signMesh.position.set(-2.6,2.6,-3.95);
+roomEntrance.add(signMesh);
+
+var doorGroup=new THREE.Group();
+var doorFrameMat=new THREE.MeshStandardMaterial({color:0x2c343a,roughness:0.7});
+var doorFrame=new THREE.Mesh(new THREE.BoxGeometry(2.4,3.6,0.25),doorFrameMat);
+doorFrame.position.set(0,1.9,-3.85);
+doorGroup.add(doorFrame);
+var doorSlabMat=new THREE.MeshStandardMaterial({color:0x5a646b,roughness:0.5,metalness:0.3});
+var doorSlab=new THREE.Mesh(new THREE.BoxGeometry(1.9,3.2,0.2),doorSlabMat);
+doorSlab.position.set(0,1.7,-3.78);
+doorGroup.add(doorSlab);
+var ledMat=new THREE.MeshStandardMaterial({color:0xff4d33,emissive:0xff2200,emissiveIntensity:0.8,roughness:0.4});
+var ledStrip=new THREE.Mesh(new THREE.BoxGeometry(2.0,0.08,0.05),ledMat);
+ledStrip.position.set(0,3.55,-3.75);
+doorGroup.add(ledStrip);
+doorGroup.userData.onTap=onDoorTap;
+roomEntrance.add(doorGroup);
+interactables.push({mesh:doorGroup,node:'entrance'});
+
+var doorOpening=false;
+function onDoorTap(){
+  if(doorOpening||state.escaped)return;
+  if(!state.power){toast('施設に電力が通っていない…どこかで電源を復旧させよう');return;}
+  if(!state.keycard){toast('ドアが施錠されている…キーカードが必要だ');return;}
+  if(!state.purinsuta){toast('プリンスターを保護してから脱出しよう!');return;}
+  doorOpening=true;
+  tween(1200,function(e){
+    doorSlab.position.y=1.7+e*3.4;
+  },function(){
+    state.escaped=true;
+    finishGame();
+  });
+}
+
+var switchesGroup=new THREE.Group();
+var switchDefs=[{n:1,x:-1.2},{n:2,x:0},{n:3,x:1.2}];
+var switchParts=[];
+switchDefs.forEach(function(def){
+  var holder=new THREE.Group();
+  holder.position.set(def.x,1.9,-3.85);
+  var base=new THREE.Mesh(new THREE.BoxGeometry(0.4,0.55,0.18),new THREE.MeshStandardMaterial({color:0x1f262b,roughness:0.6}));
+  holder.add(base);
+  var leverPivot=new THREE.Group();
+  leverPivot.position.set(0,0.18,0.1);
+  var lever=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.32,0.08),new THREE.MeshStandardMaterial({color:0xF0A868,roughness:0.4}));
+  lever.position.y=0.16;
+  leverPivot.add(lever);
+  holder.add(leverPivot);
+  var indicator=new THREE.Mesh(new THREE.CircleGeometry(0.06,16),new THREE.MeshBasicMaterial({color:0x555555}));
+  indicator.position.set(0,0.42,0.1);
+  holder.add(indicator);
+  var label=makeTextPlane(0.4,0.4,160,160,function(ctx,w,h){
+    ctx.fillStyle='rgba(0,0,0,0)';
+    ctx.fillRect(0,0,w,h);
+    ctx.fillStyle='#FBEBC9';
+    ctx.font='bold 100px sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(String(def.n),w/2,h/2+6);
+  });
+  label.position.set(0,0.72,0.1);
+  holder.add(label);
+  holder.userData.onTap=function(){onSwitchTap(def.n,leverPivot,indicator);};
+  switchesGroup.add(holder);
+  switchParts.push({n:def.n,indicator:indicator});
+});
+roomControl.add(switchesGroup);
+interactables.push({mesh:switchesGroup,node:'control'});
+
+function onSwitchTap(n,leverPivot,indicator){
+  if(state.power)return;
+  tween(160,function(e){leverPivot.rotation.x=e*0.6;},function(){
+    tween(160,function(e){leverPivot.rotation.x=0.6-e*0.6;});
+  });
+  switchSeq.push(n);
+  var idx=switchSeq.length-1;
+  var ok=switchSeq[idx]===correctSeq[idx];
+  if(!ok){
+    indicator.material.color.set(0xff4d4d);
+    switchSeq=[];
+    toast('配電の順番が違うようだ…もう一度確認しよう');
+    setTimeout(function(){
+      switchParts.forEach(function(p){p.indicator.material.color.set(0x555555);});
+    },500);
+    return;
+  }
+  indicator.material.color.set(0x6be08a);
+  if(switchSeq.length===correctSeq.length){
+    powerOn();
+  }
+}
+
+var noteMesh=makeTextPlane(1.1,0.8,420,320,function(ctx,w,h){
+  ctx.fillStyle='#FFF7E6';
+  roundRect(ctx,0,0,w,h,22);
+  ctx.fill();
+  ctx.strokeStyle='#D97F3F';
+  ctx.lineWidth=6;
+  roundRect(ctx,8,8,w-16,h-16,16);
+  ctx.stroke();
+  ctx.fillStyle='#2B3A42';
+  ctx.font='bold 40px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('配電復旧メモ',w/2,70);
+  ctx.font='bold 56px sans-serif';
+  ctx.fillStyle='#D97F3F';
+  ctx.fillText('3 → 1 → 2',w/2,170);
+  ctx.font='26px sans-serif';
+  ctx.fillStyle='#3E4E58';
+  ctx.fillText('この順にスイッチを',w/2,230);
+  ctx.fillText('押すこと',w/2,266);
+});
+noteMesh.position.set(-2.7,1.6,-3.9);
+noteMesh.userData.onTap=function(){
+  showInfo('配電復旧メモ','スイッチを 3 → 1 → 2 の順番で押すと、電源が復旧しそうだ。');
+};
+roomControl.add(noteMesh);
+interactables.push({mesh:noteMesh,node:'control'});
+
+var displayMesh=makeTextPlane(1.3,0.7,480,260,function(ctx,w,h){
+  drawDisplay(ctx,w,h,false);
+});
+displayMesh.position.set(2.4,2.7,-3.9);
+displayMesh.userData.onTap=function(){
+  if(!state.power){toast('画面は真っ暗だ…電源が必要そうだ');return;}
+  showInfo('解錠コード表示','保管庫のロック解除コード: '+cageCode.split('').join(' '));
+};
+roomControl.add(displayMesh);
+interactables.push({mesh:displayMesh,node:'control'});
+
+function drawDisplay(ctx,w,h,on){
+  ctx.fillStyle='#10151a';
+  roundRect(ctx,0,0,w,h,20);
+  ctx.fill();
+  ctx.strokeStyle='#4a5a62';
+  ctx.lineWidth=6;
+  roundRect(ctx,6,6,w-12,h-12,16);
+  ctx.stroke();
+  if(on){
+    ctx.fillStyle='#6be08a';
+    ctx.font='bold 96px monospace';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(cageCode.split('').join(' '),w/2,h/2);
+  }else{
+    ctx.fillStyle='#3a4750';
+    ctx.font='bold 90px monospace';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText('----',w/2,h/2);
+  }
+}
+
+var drawerGroup=new THREE.Group();
+var drawerBody=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.5,0.5),new THREE.MeshStandardMaterial({color:0x2a333a,roughness:0.6}));
+drawerBody.position.set(0,0.8,-3.7);
+drawerGroup.add(drawerBody);
+var keycardMesh=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.02,0.32),new THREE.MeshStandardMaterial({color:0x6be0c8,emissive:0x1c8f78,emissiveIntensity:0.4,roughness:0.3}));
+keycardMesh.position.set(0,0.92,-3.5);
+keycardMesh.visible=false;
+drawerGroup.add(keycardMesh);
+drawerGroup.userData.onTap=onDrawerTap;
+roomControl.add(drawerGroup);
+interactables.push({mesh:drawerGroup,node:'control'});
+
+var drawerOpened=false;
+function onDrawerTap(){
+  if(!state.power){toast('ロッカーは電子ロックされている…電源が必要だ');return;}
+  if(drawerOpened||state.keycard)return;
+  drawerOpened=true;
+  tween(500,function(e){drawerBody.position.z=-3.7+e*0.35;},function(){
+    keycardMesh.visible=true;
+    tween(700,function(e){
+      keycardMesh.position.y=0.92+e*0.05;
+      keycardMesh.rotation.y=e*Math.PI*2;
+    },function(){
+      keycardMesh.visible=false;
+      state.keycard=true;
+      updateInventory();
+      updateObjective();
+      toast('キーカードを手に入れた!');
+    });
+  });
+}
+
+function powerOn(){
+  if(state.power)return;
+  state.power=true;
+  tween(900,function(e){
+    ambientLight.intensity=0.32+e*0.55;
+    doorLight.color.setRGB(1-e*0.53,0.3+e*0.63,0.2+e*0.5);
+    doorLight.intensity=1.3-e*0.1;
+    ledMat.color.setRGB(1-e*0.53,0.3+e*0.63,0.2+e*0.5);
+    ledMat.emissive.setRGB(0.2*(1-e),0.55*e,0.2*e);
+  });
+  drawDisplay(displayMesh.userData.ctx,displayMesh.userData.canvas.width,displayMesh.userData.canvas.height,true);
+  displayMesh.userData.texture.needsUpdate=true;
+  toast('電源が復旧した!');
+  updateObjective();
+  renderNav();
+}
+
+var cageGroup=new THREE.Group();
+var cageGlass=new THREE.Mesh(new THREE.BoxGeometry(1.6,2.0,1.0),new THREE.MeshPhysicalMaterial({color:0xCFEAF0,transparent:true,opacity:0.22,roughness:0.1,metalness:0}));
+cageGlass.position.set(0,1.6,-3.4);
+cageGroup.add(cageGlass);
+var barMat=new THREE.MeshStandardMaterial({color:0x8a97a0,roughness:0.4,metalness:0.5});
+for(var bi=-2;bi<=2;bi++){
+  var bar=new THREE.Mesh(new THREE.BoxGeometry(0.04,2.0,0.04),barMat);
+  bar.position.set(bi*0.35,1.6,-2.95);
+  cageGroup.add(bar);
+}
+roomStorage.add(cageGroup);
+
+purinsutaMesh=createPurinsuta(1.15);
+purinsutaMesh.position.set(0,purinsutaBaseY,-3.4);
+roomStorage.add(purinsutaMesh);
+
+var keypadPanel=new THREE.Group();
+var kpBody=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.7,0.15),new THREE.MeshStandardMaterial({color:0x1f262b,roughness:0.6}));
+kpBody.position.set(1.6,1.5,-3.9);
+keypadPanel.add(kpBody);
+for(var gx=0;gx<3;gx++){
+  for(var gy=0;gy<3;gy++){
+    var btn=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.12,0.05),new THREE.MeshStandardMaterial({color:0xF0A868,roughness:0.4}));
+    btn.position.set(1.6-0.16+gx*0.16,1.5+0.2-gy*0.16,-3.82);
+    keypadPanel.add(btn);
+  }
+}
+keypadPanel.userData.onTap=openKeypad;
+cageGroup.userData.onTap=openKeypad;
+roomStorage.add(keypadPanel);
+interactables.push({mesh:keypadPanel,node:'storage'});
+interactables.push({mesh:cageGroup,node:'storage'});
+
+var monitorMesh=makeTextPlane(0.8,0.55,320,220,function(ctx,w,h){
+  ctx.fillStyle='#0c1216';
+  roundRect(ctx,0,0,w,h,16);
+  ctx.fill();
+  ctx.strokeStyle='#4a5a62';
+  ctx.lineWidth=5;
+  roundRect(ctx,5,5,w-10,h-10,12);
+  ctx.stroke();
+  ctx.strokeStyle='#6be0c8';
+  ctx.lineWidth=4;
+  ctx.beginPath();
+  ctx.moveTo(20,h/2);
+  for(var xx=20;xx<w-20;xx+=14){
+    var yy=h/2+Math.sin(xx*0.5)*10-(((xx/14)%7===0)?40:0);
+    ctx.lineTo(xx,yy);
+  }
+  ctx.stroke();
+});
+monitorMesh.position.set(-2.6,2.1,-3.95);
+roomStorage.add(monitorMesh);
+
+function openKeypad(){
+  if(state.purinsuta){toast('プリンスターはもう保護している');return;}
+  codeEntry='';
+  renderCodeDisplay();
+  document.getElementById('keypadModal').classList.remove('hidden');
+}
+
+function renderCodeDisplay(){
+  var el=document.getElementById('codeDisplay');
+  el.innerHTML='';
+  for(var i=0;i<4;i++){
+    var span=document.createElement('span');
+    span.textContent=codeEntry[i]?codeEntry[i]:'';
+    el.appendChild(span);
+  }
+}
+
+function buildKeypadGrid(){
+  var grid=document.getElementById('keypadGrid');
+  grid.innerHTML='';
+  var layout=['1','2','3','4','5','6','7','8','9','C','0','⌫'];
+  layout.forEach(function(k){
+    var btn=document.createElement('button');
+    if(k==='C'||k==='⌫'){btn.classList.add('wideAction');}
+    btn.textContent=k;
+    btn.addEventListener('click',function(){onKeypadPress(this.textContent);});
+    grid.appendChild(btn);
+  });
+}
+
+function onKeypadPress(k){
+  if(k==='C'){codeEntry='';renderCodeDisplay();return;}
+  if(k==='⌫'){codeEntry=codeEntry.slice(0,-1);renderCodeDisplay();return;}
+  if(codeEntry.length>=4)return;
+  codeEntry+=k;
+  renderCodeDisplay();
+  if(codeEntry.length===4){
+    setTimeout(checkCode,200);
+  }
+}
+
+function checkCode(){
+  if(codeEntry===cageCode){
+    document.getElementById('keypadModal').classList.add('hidden');
+    rescuePurinsuta();
+  }else{
+    var card=document.querySelector('#keypadModal .card');
+    card.classList.add('shake');
+    setTimeout(function(){card.classList.remove('shake');},400);
+    toast('コードが違うようだ…もう一度確認しよう');
+    codeEntry='';
+    renderCodeDisplay();
+  }
+}
+
+function rescuePurinsuta(){
+  tween(500,function(e){
+    cageGlass.material.opacity=0.22*(1-e);
+  });
+  tween(900,function(e,t){
+    var bounce=Math.abs(Math.sin(t*Math.PI*3))*0.3*(1-t);
+    purinsutaMesh.position.y=purinsutaBaseY+bounce;
+    purinsutaMesh.rotation.y=t*Math.PI*2;
+  },function(){
+    state.purinsuta=true;
+    updateInventory();
+    updateObjective();
+    toast('プリンスターを保護した!出口へ向かおう');
+  });
+}
+
+function updateInventory(){
+  document.getElementById('invKey').classList.toggle('got',state.keycard);
+  document.getElementById('invStar').classList.toggle('got',state.purinsuta);
+}
+
+function updateObjective(){
+  var text;
+  if(!state.power){
+    text='制御室でスイッチを正しい順番に切り替え、電源を復旧させよう';
+  }else if(!state.keycard){
+    text='制御室のロッカーからキーカードを回収しよう';
+  }else if(!state.purinsuta){
+    text='保管庫でロックのコードを解き、プリンスターを保護しよう';
+  }else{
+    text='入口ホールへ戻り、ドアを開けて脱出しよう';
+  }
+  document.getElementById('objective').textContent=text;
+}
+
+var nodes={
+  entrance:{
+    group:roomEntrance,
+    bg:0x2c343a,
+    camPos:new THREE.Vector3(0,1.6,3.6),
+    baseYaw:0,
+    exits:[{label:'制御室へ →',target:'control',enabledIf:function(){return true;}}]
+  },
+  control:{
+    group:roomControl,
+    bg:0x28353a,
+    camPos:new THREE.Vector3(0,1.6,3.6),
+    baseYaw:0,
+    exits:[
+      {label:'← 入口ホール',target:'entrance',enabledIf:function(){return true;}},
+      {label:'保管庫へ →',target:'storage',enabledIf:function(){return state.power;},lockedLabel:'🔒 保管庫(電源が必要)'}
+    ]
+  },
+  storage:{
+    group:roomStorage,
+    bg:0x242b32,
+    camPos:new THREE.Vector3(0,1.6,3.6),
+    baseYaw:0,
+    exits:[{label:'← 制御室',target:'control',enabledIf:function(){return true;}}]
+  }
+};
+
+function applyCameraRot(){
+  camera.rotation.y=yaw;
+  camera.rotation.x=pitch;
+}
+
+function goToNode(name){
+  Object.keys(nodes).forEach(function(k){nodes[k].group.visible=false;});
+  var node=nodes[name];
+  node.group.visible=true;
+  currentNode=name;
+  camera.position.copy(node.camPos);
+  yaw=node.baseYaw;
+  pitch=0;
+  applyCameraRot();
+  scene.background.setHex(node.bg);
+  scene.fog.color.setHex(node.bg);
+  renderNav();
+  updateObjective();
+}
+
+function renderNav(){
+  var navEl=document.getElementById('nav');
+  navEl.innerHTML='';
+  nodes[currentNode].exits.forEach(function(exit){
+    var btn=document.createElement('button');
+    btn.className='navBtn';
+    var enabled=exit.enabledIf();
+    if(!enabled){
+      btn.classList.add('disabled');
+      btn.textContent=exit.lockedLabel||('🔒 '+exit.label);
+      btn.disabled=true;
+    }else{
+      btn.textContent=exit.label;
+      btn.addEventListener('click',function(){goToNode(exit.target);});
+    }
+    navEl.appendChild(btn);
+  });
+}
+
+var raycaster=new THREE.Raycaster();
+var pointer=new THREE.Vector2();
+
+function handleTap(x,y){
+  pointer.x=(x/window.innerWidth)*2-1;
+  pointer.y=-(y/window.innerHeight)*2+1;
+  raycaster.setFromCamera(pointer,camera);
+  var candidates=interactables.filter(function(o){return o.node===currentNode;}).map(function(o){return o.mesh;});
+  var hits=raycaster.intersectObjects(candidates,true);
+  if(hits.length===0)return;
+  var obj=hits[0].object;
+  while(obj&&!obj.userData.onTap&&obj.parent){obj=obj.parent;}
+  if(obj&&obj.userData.onTap){obj.userData.onTap();}
+}
+
+canvas.addEventListener('pointerdown',function(e){
+  dragging=true;
+  moved=false;
+  lastX=e.clientX;
+  lastY=e.clientY;
+  downTime=Date.now();
+});
+canvas.addEventListener('pointermove',function(e){
+  if(!dragging)return;
+  var dx=e.clientX-lastX;
+  var dy=e.clientY-lastY;
+  if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;
+  yaw-=dx*0.0035;
+  pitch-=dy*0.0035;
+  var node=nodes[currentNode];
+  yaw=Math.max(node.baseYaw-0.9,Math.min(node.baseYaw+0.9,yaw));
+  pitch=Math.max(-0.32,Math.min(0.32,pitch));
+  applyCameraRot();
+  lastX=e.clientX;
+  lastY=e.clientY;
+});
+canvas.addEventListener('pointerup',function(e){
+  dragging=false;
+  if(!moved&&Date.now()-downTime<500){
+    handleTap(e.clientX,e.clientY);
+  }
+});
+canvas.addEventListener('pointercancel',function(){dragging=false;});
+
+function formatTime(ms){
+  var totalSec=Math.floor(ms/1000);
+  var m=Math.floor(totalSec/60);
+  var s=totalSec%60;
+  return (m<10?'0'+m:m)+':'+(s<10?'0'+s:s);
+}
+
+function startTimer(){
+  startTimeMs=performance.now();
+  timerInterval=setInterval(function(){
+    document.getElementById('timer').textContent=formatTime(performance.now()-startTimeMs);
+  },500);
+}
+
+function finishGame(){
+  clearInterval(timerInterval);
+  finalElapsed=formatTime(performance.now()-startTimeMs);
+  document.getElementById('winTime').textContent='クリアタイム: '+finalElapsed;
+  document.getElementById('winModal').classList.remove('hidden');
+}
+
+document.getElementById('startBtn').addEventListener('click',function(){
+  document.getElementById('startModal').classList.add('hidden');
+  startTimer();
+  setTimeout(function(){
+    document.getElementById('tapHint').style.display='none';
+  },4500);
+});
+document.getElementById('helpBtn').addEventListener('click',function(){
+  document.getElementById('helpModal').classList.remove('hidden');
+});
+document.getElementById('helpCloseBtn').addEventListener('click',function(){
+  document.getElementById('helpModal').classList.add('hidden');
+});
+document.getElementById('infoCloseBtn').addEventListener('click',function(){
+  document.getElementById('infoModal').classList.add('hidden');
+});
+document.getElementById('keypadCloseBtn').addEventListener('click',function(){
+  document.getElementById('keypadModal').classList.add('hidden');
+});
+document.getElementById('restartBtn').addEventListener('click',function(){
+  window.location.reload();
+});
+
+buildKeypadGrid();
+updateInventory();
+goToNode('entrance');
+
+function animate(){
+  requestAnimationFrame(animate);
+  if(state.purinsuta&&currentNode==='storage'){
+    purinsutaMesh.position.y=purinsutaBaseY+Math.sin(performance.now()*0.0018)*0.07;
+    purinsutaMesh.rotation.y+=0.004;
+  }
+  renderer.render(scene,camera);
+}
+animate();
+
+})();
+</script>
+</body>
+</html>
